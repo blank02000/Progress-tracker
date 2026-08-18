@@ -105,6 +105,8 @@ interface CustomerContextType {
   resetToDemoData: () => void;
   exportDataJSON: () => string;
   importDataJSON: (jsonStr: string) => boolean;
+  lastSentEmail: { to: string; subject: string; body: string; timestamp: string } | null;
+  clearLastSentEmail: () => void;
 }
 
 const STORAGE_KEY = 'cyberdrill_customers_v2';
@@ -170,6 +172,15 @@ export const CustomerProvider: React.FC<{ children: ReactNode }> = ({ children }
   });
 
   const [dueSoonDays, setDueSoonDays] = useState<number>(14);
+
+  const [lastSentEmail, setLastSentEmail] = useState<{
+    to: string;
+    subject: string;
+    body: string;
+    timestamp: string;
+  } | null>(null);
+
+  const clearLastSentEmail = () => setLastSentEmail(null);
 
   // Derive currentUser object
   const currentUser: UserAccount = useMemo(() => {
@@ -278,6 +289,15 @@ export const CustomerProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     setUsers((prev) => [...prev, newCsm]);
+
+    // Simulate sending welcome email to the newly created CSM
+    setLastSentEmail({
+      to: newCsm.email,
+      subject: `Welcome to CyberDrill - Your CSM Account & Portal Access`,
+      body: `Hello ${newCsm.name},\n\nYour Customer Success Manager account has been created successfully with the title "${newCsm.title}".\n\nYou can now log in to the portal to manage your assigned customers, drills, and compliance reviews.\n\nBest regards,\nCyberDrill Admin & SecOps`,
+      timestamp: new Date().toLocaleTimeString(),
+    });
+
     return newCsm;
   };
 
@@ -913,6 +933,8 @@ export const CustomerProvider: React.FC<{ children: ReactNode }> = ({ children }
         resetToDemoData,
         exportDataJSON,
         importDataJSON,
+        lastSentEmail,
+        clearLastSentEmail,
       }}
     >
       {children}

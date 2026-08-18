@@ -27,6 +27,7 @@ import { CreateEditDeliverableModal } from './components/modals/CreateEditDelive
 import { CompleteDeliverableModal } from './components/modals/CompleteDeliverableModal';
 import { Customer, DrillRecord, ReviewMeeting, LmsDeliverable } from './types';
 import { generateReminders } from './utils/drillCalculator';
+import { Mail, X } from 'lucide-react';
 
 function AppContent() {
   const {
@@ -42,6 +43,8 @@ function AppContent() {
     updateReviewMeeting,
     createNewYearPlan,
     deleteLmsDeliverable,
+    lastSentEmail,
+    clearLastSentEmail,
   } = useCustomerContext();
 
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
@@ -406,6 +409,34 @@ function AppContent() {
         deliverable={completeDeliverableState.deliverable}
         selectedYear={completeDeliverableState.selectedYear}
       />
+
+      {/* Email Notification Toast when CSM is created */}
+      {lastSentEmail && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white rounded-2xl shadow-2xl p-5 border border-slate-700 max-w-md animate-in slide-in-from-bottom-5 duration-300">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl">
+                <Mail className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white">Welcome Email Dispatched</h4>
+                <p className="text-xs text-slate-400">{lastSentEmail.timestamp}</p>
+              </div>
+            </div>
+            <button
+              onClick={clearLastSentEmail}
+              className="text-slate-400 hover:text-white p-1 rounded-lg"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="bg-slate-800/90 rounded-xl p-3 text-xs space-y-1.5 border border-slate-700/60 font-mono">
+            <div className="text-slate-300"><span className="text-slate-500">To:</span> {lastSentEmail.to}</div>
+            <div className="text-slate-300"><span className="text-slate-500">Subject:</span> {lastSentEmail.subject}</div>
+            <div className="text-slate-400 whitespace-pre-line mt-1 pt-1 border-t border-slate-700/60">{lastSentEmail.body}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
