@@ -1,0 +1,6 @@
+{
+  "name": "CyberDrill — Phishing Simulation & Awareness Tracker",
+  "description": "Internal operations tool for scheduling, tracking, and reviewing customer annual cybersecurity drills and phishing simulations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
