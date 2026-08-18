@@ -105,6 +105,7 @@ interface CustomerContextType {
   resetToDemoData: () => void;
   exportDataJSON: () => string;
   importDataJSON: (jsonStr: string) => boolean;
+  bulkImportCustomers: (rows: any[]) => number;
   lastSentEmail: { to: string; subject: string; body: string; timestamp: string } | null;
   clearLastSentEmail: () => void;
 }
@@ -156,7 +157,7 @@ export const CustomerProvider: React.FC<{ children: ReactNode }> = ({ children }
     } catch (e) {
       console.warn('Could not read saved customer data, defaulting to seed data', e);
     }
-    return INITIAL_CUSTOMERS;
+    return [];
   });
 
   const [selectedCustomerId, setSelectedCustomerIdState] = useState<string | null>(null);
@@ -396,6 +397,98 @@ export const CustomerProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     setAllCustomers((prev) => [newCustomer, ...prev]);
     return newCustomer;
+  };
+
+  const bulkImportCustomers = (rows: any[]): number => {
+    let importedCount = 0;
+    const newCustomers: Customer[] = [];
+
+    for (const row of rows) {
+      const companyName = row.companyName || row['Company Name'] || row.company || row['Company'];
+      if (!companyName || typeof companyName !== 'string' || !companyName.trim()) {
+        continue;
+      }
+
+      const customerContact = row.customerContact || row['Customer Contact'] || row['Primary Contact'] || row.contact || 'Primary Contact';
+      const contactEmail = row.contactEmail || row['Contact Email'] || row.email || '';
+      const contactPhone = row.contactPhone || row['Contact Phone'] || row.phone || '';
+      const accountOwner = row.accountOwner || row['Account Owner'] || row.owner || 'Internal SecOps';
+      const industry = row.industry || row['Industry'] || '';
+      const notes = row.notes || row['Notes'] || '';
+      const startDate = row.startDate || row['Start Date'] || '2026-01-01';
+      const annualRequirement = parseInt(row.annualRequirement || row['Annual Requirement'] || row['Drills'] || '4', 10) || 4;
+      const intervalMonths = parseInt(row.intervalMonths || row['Interval Months'] || row['Interval'] || '3', 10) || 3;
+      
+      const drillTypeStr = row.defaultDrillType || row['Drill Type'] || row['Default Drill Type'] || 'Phishing Email Simulation';
+      const validDrillTypes: DrillType[] = [
+        'Phishing Email Simulation',
+        'Spear Phishing / Executive',
+        'Smishing (SMS)',
+        'Credential Harvesting',
+        'Ransomware Awareness',
+        'USB Drop / Physical',
+        'Social Engineering Call',
+        'Custom Drill',
+      ];
+      const defaultDrillType: DrillType = validDrillTypes.includes(drillTypeStr as DrillType)
+        ? (drillTypeStr as DrillType)
+        : 'Phishing Email Simulation';
+
+      const csmEmailOrName = row.csmEmail || row['CSM Email'] || row.csmName || row['CSM Name'] || row['Assigned CSM'] || '';
+      let assignedCsmUser = users.find(
+        (u) =>
+          u.role === 'CSM' &&
+          (u.email.toLowerCase() === String(csmEmailOrName).toLowerCase() ||
+           u.name.toLowerCase() === String(csmEmailOrName).toLowerCase())
+      );
+
+      const newId = `cust-${Date.now()}-${Math.random().toString(36).substring(2, 6)}-${importedCount}`;
+      const startYear = parseInt(String(startDate).substring(0, 4), 10) || 2026;
+
+      const generatedDrills = generateAnnualTimeline(
+        startDate,
+        annualRequirement,
+        intervalMonths,
+        defaultDrillType
+      );
+
+      const newCustomer: Customer = {
+        id: newId,
+        companyName: companyName.trim(),
+        customerContact: customerContact.trim(),
+        contactEmail: contactEmail.trim(),
+        contactPhone: contactPhone.trim(),
+        accountOwner: accountOwner.trim(),
+        csmId: assignedCsmUser ? assignedCsmUser.id : undefined,
+        csmName: assignedCsmUser ? assignedCsmUser.name : undefined,
+        startDate: startDate,
+        status: 'Active',
+        industry: industry.trim(),
+        notes: notes.trim(),
+        products: { prophish: true, proLms: true, proPatrol: true },
+        currentYear: startYear,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        annualPlans: {
+          [startYear]: {
+            year: startYear,
+            annualRequirement,
+            startDate,
+            intervalMonths,
+            defaultDrillType,
+            drills: generatedDrills,
+          },
+        },
+      };
+
+      newCustomers.push(newCustomer);
+      importedCount++;
+    }
+
+    if (newCustomers.length > 0) {
+      setAllCustomers((prev) => [...newCustomers, ...prev]);
+    }
+    return importedCount;
   };
 
   const updateCustomer = (id: string, partial: Partial<Customer>): boolean => {
@@ -933,6 +1026,7 @@ export const CustomerProvider: React.FC<{ children: ReactNode }> = ({ children }
         resetToDemoData,
         exportDataJSON,
         importDataJSON,
+        bulkImportCustomers,
         lastSentEmail,
         clearLastSentEmail,
       }}

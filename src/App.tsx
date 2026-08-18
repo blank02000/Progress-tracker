@@ -25,6 +25,7 @@ import { ReviewMeetingModal } from './components/modals/ReviewMeetingModal';
 import { NewYearPlanModal } from './components/modals/NewYearPlanModal';
 import { CreateEditDeliverableModal } from './components/modals/CreateEditDeliverableModal';
 import { CompleteDeliverableModal } from './components/modals/CompleteDeliverableModal';
+import { BulkUploadModal } from './components/modals/BulkUploadModal';
 import { Customer, DrillRecord, ReviewMeeting, LmsDeliverable } from './types';
 import { generateReminders } from './utils/drillCalculator';
 import { Mail, X } from 'lucide-react';
@@ -56,6 +57,7 @@ function AppContent() {
 
   // Modal States
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
 
   const [completeDrillState, setCompleteDrillState] = useState<{
     isOpen: boolean;
@@ -270,6 +272,7 @@ function AppContent() {
                   <CustomerListView
                     onSelectCustomer={handleSelectCustomer}
                     onOpenCreateCustomer={() => setIsCreateCustomerOpen(true)}
+                    onOpenBulkUpload={() => setIsBulkUploadOpen(true)}
                     onMarkDrillComplete={handleOpenCompleteDrill}
                   />
                 )}
@@ -437,6 +440,12 @@ function AppContent() {
           </div>
         </div>
       )}
+
+      {/* Bulk Excel / CSV Upload Modal */}
+      <BulkUploadModal
+        isOpen={isBulkUploadOpen}
+        onClose={() => setIsBulkUploadOpen(false)}
+      />
     </div>
   );
 }

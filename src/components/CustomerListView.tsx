@@ -18,17 +18,20 @@ import {
   ShieldCheck,
   Building,
   UserCheck,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface CustomerListViewProps {
   onSelectCustomer: (customerId: string) => void;
   onOpenCreateCustomer: () => void;
+  onOpenBulkUpload?: () => void;
   onMarkDrillComplete: (customer: Customer, drill: DrillRecord) => void;
 }
 
 export const CustomerListView: React.FC<CustomerListViewProps> = ({
   onSelectCustomer,
   onOpenCreateCustomer,
+  onOpenBulkUpload,
   onMarkDrillComplete,
 }) => {
   const {
@@ -108,14 +111,24 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
         </div>
 
         {isAdmin && (
-          <button
-            id="btn-add-customer-from-list"
-            type="button"
-            onClick={onOpenCreateCustomer}
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <Plus className="w-4 h-4" /> Create Customer Account
-          </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <button
+              id="btn-bulk-upload-customers"
+              type="button"
+              onClick={onOpenBulkUpload}
+              className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-semibold transition-colors flex items-center gap-1.5"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Upload Excel / CSV
+            </button>
+            <button
+              id="btn-add-customer-from-list"
+              type="button"
+              onClick={onOpenCreateCustomer}
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" /> Create Customer Account
+            </button>
+          </div>
         )}
       </div>
 
